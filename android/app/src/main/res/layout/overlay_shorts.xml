@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/paper"
+    android:padding="40dp">
+
+    <TextView
+        android:id="@+id/overlay_countdown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="3"
+        android:textColor="@color/focus"
+        android:textSize="64sp"
+        android:layout_marginBottom="28dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Not Shorts right now."
+        android:textColor="@color/ink"
+        android:textSize="26sp"
+        android:gravity="center" />
+
+    <TextView
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="Taking you back to full videos in a moment."
+        android:textColor="#7A756C"
+        android:textSize="15sp"
+        android:gravity="center"
+        android:lineSpacingMultiplier="1.4" />
+</LinearLayout>

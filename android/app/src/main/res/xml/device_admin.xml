@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Minimal admin: being an active admin is enough to block casual uninstall. No device
+     policies (wipe, lock, password) are requested — this is a self-directed tool, not MDM. -->
+<device-admin xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-policies />
+</device-admin>

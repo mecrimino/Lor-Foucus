@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/paper"
+    android:padding="40dp">
+
+    <ImageView
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="32dp"
+        android:src="@drawable/badger_roundel"
+        android:contentDescription="@string/app_name" />
+
+    <TextView
+        android:id="@+id/overlay_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="This one’s off for now."
+        android:textColor="@color/ink"
+        android:textSize="26sp"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/overlay_subtitle"
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="You asked me to keep this feed quiet. Nothing to do here."
+        android:textColor="#7A756C"
+        android:textSize="15sp"
+        android:gravity="center"
+        android:lineSpacingMultiplier="1.4" />
+
+    <Button
+        android:id="@+id/overlay_action"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="48dp"
+        android:text="Back"
+        android:textAllCaps="false"
+        android:textColor="#F7F5F0"
+        android:background="@color/primary" />
+</LinearLayout>

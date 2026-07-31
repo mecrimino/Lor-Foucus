@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/paper"
+    android:padding="40dp">
+
+    <TextView
+        android:id="@+id/overlay_countdown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="10"
+        android:textColor="@color/focus"
+        android:textSize="46sp"
+        android:layout_marginBottom="40dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Take a breath."
+        android:textColor="@color/ink"
+        android:textSize="26sp"
+        android:gravity="center" />
+
+    <TextView
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="Do you still want to open this?"
+        android:textColor="#7A756C"
+        android:textSize="15sp"
+        android:gravity="center"
+        android:lineSpacingMultiplier="1.4" />
+
+    <Button
+        android:id="@+id/overlay_notnow"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="52dp"
+        android:text="Not now"
+        android:textAllCaps="false"
+        android:textColor="#F7F5F0"
+        android:background="@color/primary" />
+
+    <TextView
+        android:id="@+id/overlay_continue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Continue anyway"
+        android:textColor="#9A9488"
+        android:textSize="13sp" />
+</LinearLayout>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lor Focus</string>
+    <string name="accessibility_label">Lor Focus</string>
+    <string name="accessibility_description">Lets Lor Focus see when a scrolling feed opens so it can step in. Nothing leaves your phone.</string>
+</resources>

@@ -1,0 +1,24 @@
+# Build outputs
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/app/release/
+
+# Local / machine-specific
+android/local.properties
+local.properties
+
+# Signing keys — never commit
+*.jks
+*.keystore
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Scratch
+*.log
+
+Lor-Focus-debug.apk
