@@ -60,10 +60,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     suspend fun loadInstalledApps(): List<InstalledApp> = withContext(Dispatchers.IO) {
         val pm = getApplication<Application>().packageManager
         val self = getApplication<Application>().packageName
+        // Never let the user block their launcher (that would trap them).
+        val homePkgs = pm.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), 0)
+            .map { it.activityInfo.packageName }.toHashSet()
         val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
         pm.queryIntentActivities(intent, 0).mapNotNull { ri ->
             val ai = ri.activityInfo.applicationInfo
-            if (ai.packageName == self) return@mapNotNull null
+            if (ai.packageName == self || ai.packageName in homePkgs) return@mapNotNull null
             val stockSystem = (ai.flags and ApplicationInfo.FLAG_SYSTEM) != 0 &&
                 (ai.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) == 0
             if (stockSystem) return@mapNotNull null            // hide Settings/Phone/Camera etc.
