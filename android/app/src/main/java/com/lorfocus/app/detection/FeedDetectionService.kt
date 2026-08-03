@@ -41,9 +41,10 @@ class FeedDetectionService : AccessibilityService() {
     @Volatile private var focusDomains: List<String> = emptyList()
     @Volatile private var focusEndsAt: Long = 0L
     @Volatile private var shortsEnabled: Boolean = true
+    @Volatile private var shortsSig: Set<String> = emptySet()   // reel ids taught from a real Short
     private val usageCache = HashMap<String, Pair<Long, Long>>()
 
-    private data class Scan(val isShorts: Boolean, val url: String?, val ids: List<String>, val reelCount: Int)
+    private data class Scan(val isShorts: Boolean, val url: String?, val ids: List<String>, val reelIds: List<String>)
     private enum class Kind { YOUTUBE, BLOCKED, BROWSER }
 
     override fun onServiceConnected() {
@@ -57,7 +58,12 @@ class FeedDetectionService : AccessibilityService() {
                 focusDomains = domainsFor(list.filter { it.mode != "always" }.map { it.pkg })
             }
         }
-        scope.launch { app.prefs.flow.collect { focusEndsAt = it.focusEndsAt } }
+        scope.launch {
+            app.prefs.flow.collect {
+                focusEndsAt = it.focusEndsAt
+                shortsSig = it.shortsSig.split(',').map { s -> s.trim() }.filter { s -> s.isNotEmpty() }.toHashSet()
+            }
+        }
         scope.launch { app.db.feedDao().all().collect { feeds -> shortsEnabled = feeds.any { it.id == "ys" && it.enabled } } }
     }
 
@@ -94,14 +100,15 @@ class FeedDetectionService : AccessibilityService() {
         }
 
         val root = rootInActiveWindow ?: return
-        val s = try { scan(pkg, root) } catch (t: Throwable) { Scan(false, null, emptyList(), 0) }
+        val s = try { scan(pkg, root) } catch (t: Throwable) { Scan(false, null, emptyList(), emptyList()) }
 
         DetectionDiagnostics.lastPackage = pkg
         DetectionDiagnostics.lastShorts = s.isShorts
-        DetectionDiagnostics.lastReelCount = s.reelCount
+        DetectionDiagnostics.lastReelCount = s.reelIds.size
         DetectionDiagnostics.lastChannel = s.url
         DetectionDiagnostics.interestingIds = s.ids
         DetectionDiagnostics.updatedAt = System.currentTimeMillis()
+        if (pkg == YOUTUBE) DetectionDiagnostics.lastYtReelIds = s.reelIds
 
         if (now < cooldownUntil) return
 
@@ -177,11 +184,15 @@ class FeedDetectionService : AccessibilityService() {
             }
             for (i in 0 until node.childCount) node.getChild(i)?.let { stack.addLast(it) }
         }
-        // The immersive Shorts player has MANY distinct reel_* ids (pager, like/comment/share rail,
-        // progress bar, channel bar…). A Shorts shelf on a normal watch page or the bottom-nav
-        // Shorts button has only a few — so a count threshold avoids those false positives.
-        val isShorts = pkg == YOUTUBE && reelIds.size >= SHORTS_MIN_REELS
-        return Scan(isShorts, url, ids.take(40).toList(), reelIds.size)
+        // Prefer the taught signature (exact ids from a real Short on THIS device): fire when the
+        // current screen overlaps it strongly. A Shorts shelf lacks the player-only ids, so it
+        // won't match. Fall back to a plain count threshold when nothing has been taught.
+        val overlap = if (shortsSig.isEmpty()) 0 else reelIds.count { it in shortsSig }
+        val isShorts = pkg == YOUTUBE && (
+            (shortsSig.isNotEmpty() && overlap >= minOf(4, shortsSig.size)) ||
+                (shortsSig.isEmpty() && reelIds.size >= SHORTS_MIN_REELS)
+            )
+        return Scan(isShorts, url, ids.take(40).toList(), reelIds.toList())
     }
 
     private fun isUrlBar(short: String): Boolean {
@@ -229,7 +240,7 @@ class FeedDetectionService : AccessibilityService() {
         private const val DEBOUNCE_MS = 400L
         private const val MAX_NODES = 700
         private const val RECLAIM_SECONDS_PER_BLOCK = 40
-        private const val SHORTS_MIN_REELS = 7   // distinct reel_* ids that mean "immersive Shorts player"
+        private const val SHORTS_MIN_REELS = 5   // fallback when Shorts isn't taught yet
         private val KEYWORDS = listOf("reel", "short", "url", "location", "omnibox")
         private val BROWSERS = setOf(
             "com.android.chrome", "com.chrome.beta", "com.chrome.dev",

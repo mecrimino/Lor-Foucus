@@ -101,6 +101,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun endFocus() = viewModelScope.launch { a.prefs.setFocusEnds(0L) }
     fun setFocusDuration(minutes: Int) = viewModelScope.launch { a.prefs.setFocusDuration(minutes) }
 
+    // "Teach Shorts" — save the reel ids captured from a real Short as the detection signature.
+    fun teachShorts(reelIds: List<String>) = viewModelScope.launch { a.prefs.setShortsSig(reelIds.joinToString(",")) }
+    fun clearShortsSignature() = viewModelScope.launch { a.prefs.setShortsSig("") }
+
     // feeds
     fun upsertFeed(feed: MonitoredFeed) = viewModelScope.launch { a.db.feedDao().upsert(feed) }
     fun setMode(id: String, mode: FeedMode) = editFeed(id) { it.copy(mode = mode) }

@@ -11,4 +11,6 @@ object DetectionDiagnostics {
     @Volatile var lastChannel: String? = null
     @Volatile var interestingIds: List<String> = emptyList()
     @Volatile var updatedAt: Long = 0L
+    /** reel_* ids from the most recent YouTube screen — used by the "teach Shorts" button. */
+    @Volatile var lastYtReelIds: List<String> = emptyList()
 }

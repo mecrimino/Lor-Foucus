@@ -107,7 +107,7 @@ private fun CurrentScreen(router: Router, vm: AppViewModel, settings: AppSetting
     Dest.SETTINGS -> SettingsScreen(router, settings, vm)
     Dest.STRICT -> StrictScreen(router, settings, vm)
     Dest.GOALS -> GoalsScreen(router, settings, vm)
-    Dest.DIAG -> DiagnosticsScreen(router)
+    Dest.DIAG -> DiagnosticsScreen(router, vm)
     Dest.APPDETAIL -> AppDetailScreen(router, vm)
     else -> Box(Modifier.fillMaxSize())
 }
@@ -1089,26 +1089,38 @@ private fun toggleCard(title: String, desc: String, on: Boolean, onToggle: () ->
 }
 
 @Composable
-private fun DiagnosticsScreen(router: Router) {
+private fun DiagnosticsScreen(router: Router, vm: AppViewModel) {
     val c = col()
+    val settings by vm.settings.collectAsState()
     var tick by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) { while (true) { delay(1000); tick++ } }
     val pkg = remember(tick) { DetectionDiagnostics.lastPackage }
     val shorts = remember(tick) { DetectionDiagnostics.lastShorts }
     val reelCount = remember(tick) { DetectionDiagnostics.lastReelCount }
-    val channel = remember(tick) { DetectionDiagnostics.lastChannel }
+    val ytReel = remember(tick) { DetectionDiagnostics.lastYtReelIds }
     val ids = remember(tick) { DetectionDiagnostics.interestingIds }
-    Body(top = 26) {
-        TopBar("Diagnostics") { router.back() }
-        Spacer(Modifier.height(20.dp))
-        Text("Open YouTube — a Short, then a normal video — come back here and screenshot this. It shows what the detector sees, so the signatures can be tuned to your device.",
+    val taughtCount = settings.shortsSig.split(',').count { it.isNotBlank() }
+    Body(top = 26, bottom = {
+        PrimaryButton("This screen is a Short — teach it", enabled = ytReel.size >= 3) { vm.teachShorts(ytReel) }
+        if (taughtCount > 0) {
+            Spacer(Modifier.height(10.dp))
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Text("Clear taught Shorts", color = c.quiet, fontSize = 13.sp, modifier = Modifier.clickable { vm.clearShortsSignature() })
+            }
+        }
+    }) {
+        TopBar("Teach Shorts") { router.back() }
+        Spacer(Modifier.height(18.dp))
+        Text("To make Shorts-blocking exact on your phone: open a real Short in YouTube, then come " +
+            "straight here and tap the button below. Lor Focus learns that screen and blocks only screens like it.",
             color = c.muted, fontSize = 14.sp, lineHeight = 22.sp)
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(22.dp))
+        diagRow("Taught", if (taughtCount > 0) "yes · $taughtCount ids" else "not yet")
         diagRow("Foreground app", pkg)
-        diagRow("Shorts detected", if (shorts) "yes" else "no")
-        diagRow("Reel elements", "$reelCount  (blocks at 7+)")
-        diagRow("Channel read", channel ?: "—")
-        Spacer(Modifier.height(20.dp))
+        diagRow("Shorts detected now", if (shorts) "yes" else "no")
+        diagRow("Reel elements now", "$reelCount")
+        diagRow("Last YouTube reel ids", "${ytReel.size}")
+        Spacer(Modifier.height(18.dp))
         Eyebrow("View-ids seen (live)"); Spacer(Modifier.height(10.dp))
         if (ids.isEmpty()) {
             Text("none yet — open YouTube, then return here", color = c.faint, fontSize = 13.sp)

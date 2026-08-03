@@ -24,6 +24,8 @@ data class AppSettings(
     // Timed Focus session: active while now < focusEndsAt (epoch millis). 0 = off.
     val focusEndsAt: Long = 0L,
     val focusDurationMin: Int = 30,
+    // Comma-joined reel_* ids captured from a real Short ("teach Shorts"). Empty = not taught.
+    val shortsSig: String = "",
 )
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore("lorfocus_prefs")
@@ -39,6 +41,7 @@ class Prefs(private val context: Context) {
         val goal = stringPreferencesKey("goal")
         val focusEndsAt = longPreferencesKey("focusEndsAt")
         val focusDurationMin = intPreferencesKey("focusDurationMin")
+        val shortsSig = stringPreferencesKey("shortsSig")
     }
 
     val flow: Flow<AppSettings> = context.dataStore.data.map { p ->
@@ -53,6 +56,7 @@ class Prefs(private val context: Context) {
             goal = p[K.goal] ?: d.goal,
             focusEndsAt = p[K.focusEndsAt] ?: d.focusEndsAt,
             focusDurationMin = p[K.focusDurationMin] ?: d.focusDurationMin,
+            shortsSig = p[K.shortsSig] ?: d.shortsSig,
         )
     }
 
@@ -64,5 +68,6 @@ class Prefs(private val context: Context) {
     suspend fun setGoal(v: String) = context.dataStore.edit { it[K.goal] = v }
     suspend fun setFocusEnds(v: Long) = context.dataStore.edit { it[K.focusEndsAt] = v }
     suspend fun setFocusDuration(v: Int) = context.dataStore.edit { it[K.focusDurationMin] = v }
+    suspend fun setShortsSig(v: String) = context.dataStore.edit { it[K.shortsSig] = v }
     suspend fun clear() { context.dataStore.edit { it.clear() } }   // F9.5 reset all data
 }
