@@ -7,6 +7,7 @@ package com.lorfocus.app.detection
 object DetectionDiagnostics {
     @Volatile var lastPackage: String = "—"
     @Volatile var lastShorts: Boolean = false
+    @Volatile var lastReelCount: Int = 0
     @Volatile var lastChannel: String? = null
     @Volatile var interestingIds: List<String> = emptyList()
     @Volatile var updatedAt: Long = 0L

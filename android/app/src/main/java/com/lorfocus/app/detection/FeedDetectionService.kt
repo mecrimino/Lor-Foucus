@@ -43,7 +43,7 @@ class FeedDetectionService : AccessibilityService() {
     @Volatile private var shortsEnabled: Boolean = true
     private val usageCache = HashMap<String, Pair<Long, Long>>()
 
-    private data class Scan(val isShorts: Boolean, val url: String?, val ids: List<String>)
+    private data class Scan(val isShorts: Boolean, val url: String?, val ids: List<String>, val reelCount: Int)
     private enum class Kind { YOUTUBE, BLOCKED, BROWSER }
 
     override fun onServiceConnected() {
@@ -94,10 +94,11 @@ class FeedDetectionService : AccessibilityService() {
         }
 
         val root = rootInActiveWindow ?: return
-        val s = try { scan(pkg, root) } catch (t: Throwable) { Scan(false, null, emptyList()) }
+        val s = try { scan(pkg, root) } catch (t: Throwable) { Scan(false, null, emptyList(), 0) }
 
         DetectionDiagnostics.lastPackage = pkg
         DetectionDiagnostics.lastShorts = s.isShorts
+        DetectionDiagnostics.lastReelCount = s.reelCount
         DetectionDiagnostics.lastChannel = s.url
         DetectionDiagnostics.interestingIds = s.ids
         DetectionDiagnostics.updatedAt = System.currentTimeMillis()
@@ -157,8 +158,7 @@ class FeedDetectionService : AccessibilityService() {
     }
 
     private fun scan(pkg: String, root: AccessibilityNodeInfo): Scan {
-        val frags = DetectionRules.byPackage[pkg]?.flatMap { it.viewIdContains } ?: emptyList()
-        var isShorts = false
+        val reelIds = HashSet<String>()
         var url: String? = null
         val ids = LinkedHashSet<String>()
         var scanned = 0
@@ -170,14 +170,18 @@ class FeedDetectionService : AccessibilityService() {
             if (vid != null) {
                 val short = vid.substringAfterLast('/')
                 if (KEYWORDS.any { short.contains(it, true) }) ids.add(short)
-                if (!isShorts && frags.any { vid.contains(it, true) }) isShorts = true
+                if (short.contains("reel", true)) reelIds.add(short)
                 if (url == null && isUrlBar(short)) {
                     node.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }?.let { url = it }
                 }
             }
             for (i in 0 until node.childCount) node.getChild(i)?.let { stack.addLast(it) }
         }
-        return Scan(isShorts, url, ids.take(40).toList())
+        // The immersive Shorts player has MANY distinct reel_* ids (pager, like/comment/share rail,
+        // progress bar, channel bar…). A Shorts shelf on a normal watch page or the bottom-nav
+        // Shorts button has only a few — so a count threshold avoids those false positives.
+        val isShorts = pkg == YOUTUBE && reelIds.size >= SHORTS_MIN_REELS
+        return Scan(isShorts, url, ids.take(40).toList(), reelIds.size)
     }
 
     private fun isUrlBar(short: String): Boolean {
@@ -225,6 +229,7 @@ class FeedDetectionService : AccessibilityService() {
         private const val DEBOUNCE_MS = 400L
         private const val MAX_NODES = 700
         private const val RECLAIM_SECONDS_PER_BLOCK = 40
+        private const val SHORTS_MIN_REELS = 7   // distinct reel_* ids that mean "immersive Shorts player"
         private val KEYWORDS = listOf("reel", "short", "url", "location", "omnibox")
         private val BROWSERS = setOf(
             "com.android.chrome", "com.chrome.beta", "com.chrome.dev",

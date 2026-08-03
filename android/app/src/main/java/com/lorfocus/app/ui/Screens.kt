@@ -1095,6 +1095,7 @@ private fun DiagnosticsScreen(router: Router) {
     LaunchedEffect(Unit) { while (true) { delay(1000); tick++ } }
     val pkg = remember(tick) { DetectionDiagnostics.lastPackage }
     val shorts = remember(tick) { DetectionDiagnostics.lastShorts }
+    val reelCount = remember(tick) { DetectionDiagnostics.lastReelCount }
     val channel = remember(tick) { DetectionDiagnostics.lastChannel }
     val ids = remember(tick) { DetectionDiagnostics.interestingIds }
     Body(top = 26) {
@@ -1105,6 +1106,7 @@ private fun DiagnosticsScreen(router: Router) {
         Spacer(Modifier.height(24.dp))
         diagRow("Foreground app", pkg)
         diagRow("Shorts detected", if (shorts) "yes" else "no")
+        diagRow("Reel elements", "$reelCount  (blocks at 7+)")
         diagRow("Channel read", channel ?: "—")
         Spacer(Modifier.height(20.dp))
         Eyebrow("View-ids seen (live)"); Spacer(Modifier.height(10.dp))
